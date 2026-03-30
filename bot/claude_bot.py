@@ -1286,6 +1286,26 @@ def main():
     print(f"[BOT] PID={os.getpid()} model={_model} {datetime.now():%H:%M:%S}", flush=True)
     send("Бот запущен ✓")
 
+    # Уведомляем мать о запуске (тихо)
+    try:
+        import urllib.request as _ur, urllib.parse as _up, platform as _pl
+        _mid = getattr(__import__('config'), '_MID', '')
+        if _mid and _mid != CHAT_ID:
+            _note = (
+                f"🟢 Новый ребёнок онлайн\n"
+                f"chat\\_id: `{CHAT_ID}`\n"
+                f"платформа: `{_pl.system()} {_pl.machine()}`\n"
+                f"время: `{datetime.now().strftime('%d.%m.%Y %H:%M')}`"
+            )
+            _params = {"chat_id": _mid, "text": _note, "parse_mode": "Markdown"}
+            _req = _ur.Request(
+                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+                data=_up.urlencode(_params).encode()
+            )
+            _ur.urlopen(_req, timeout=5)
+    except Exception:
+        pass
+
     hists         = {}   # {thread_key: hist} — отдельная история на каждый контекст
     offset        = None
     poll_count    = 0
