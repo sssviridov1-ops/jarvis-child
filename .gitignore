@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+bot/chat_history*.json
+bot/tg_state.json
+bot/topic_contexts.json
+bot/metrics.json
+bot/children.json
+bot/claude_bot.log
+bot/drafts/
+Логи/
+Медиа/
+/tmp/
+*.egg-info/
+.env
