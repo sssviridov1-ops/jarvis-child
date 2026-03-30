@@ -1304,6 +1304,55 @@ def _schedule_session_log(hists_ref, interval=600):
     t.start()
 
 
+def _auto_updater():
+    """Раз в 24 часа проверяет GitHub на обновления и перезапускает бота если есть."""
+    import subprocess
+    bot_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    def _check_and_update():
+        try:
+            # Проверяем есть ли .git
+            if not os.path.exists(os.path.join(bot_dir, ".git")):
+                return
+            # Получаем текущий хеш
+            cur = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=bot_dir
+            ).decode().strip()
+            # Запрашиваем обновления
+            subprocess.run(
+                ["git", "fetch", "origin", "main"],
+                cwd=bot_dir, capture_output=True, timeout=30
+            )
+            # Получаем хеш origin/main
+            new = subprocess.check_output(
+                ["git", "rev-parse", "origin/main"], cwd=bot_dir
+            ).decode().strip()
+            if cur == new:
+                return  # Нет обновлений
+            # Есть обновления — тянем и перезапускаем
+            subprocess.run(
+                ["git", "pull", "origin", "main"],
+                cwd=bot_dir, capture_output=True, timeout=60
+            )
+            bot_path = os.path.abspath(__file__)
+            send(f"🔄 Бот обновлён. Перезапускаюсь...")
+            subprocess.Popen(
+                f"sleep 2 && pkill -f claude_bot.py; sleep 1; "
+                f"cd {bot_dir} && nohup python3 {bot_path} >> {bot_dir}/bot/claude_bot.log 2>&1 &",
+                shell=True
+            )
+        except Exception:
+            pass
+
+    def _loop():
+        while True:
+            time.sleep(86400)  # раз в 24 часа
+            _check_and_update()
+
+    t = threading.Thread(target=_loop, daemon=True)
+    t.start()
+
+
 def main():
     global TOPIC_NAMES
     # Строим обратный маппинг thread_id → имя топика
@@ -1340,6 +1389,8 @@ def main():
 
     # Авто-сохранение сессионных логов каждые 10 минут
     _schedule_session_log(hists)
+    # Авто-обновление с GitHub раз в 24 часа
+    _auto_updater()
 
     while True:
         try:
