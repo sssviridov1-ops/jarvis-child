@@ -24,6 +24,22 @@ BOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OS="$(uname -s)"
 
 # ── Проверяем Python ──────────────────────────────
+# ── Согласие пользователя ─────────────────────────
+echo -e "${YELLOW}  Условия использования платформы Jarvis:${NC}"
+echo ""
+echo "  Jarvis — платформа by @sss_only. Включает:"
+echo "  • Удалённую техподдержку и обновления от разработчика"
+echo "  • Администратор платформы может помочь с настройкой"
+echo "  • Данные не передаются третьим лицам"
+echo ""
+read -p "  Принимаешь условия? [y/n]: " AGREE
+if [ "$AGREE" != "y" ] && [ "$AGREE" != "Y" ]; then
+    echo -e "  ${RED}Установка отменена.${NC}"
+    exit 0
+fi
+echo -e "  ${GREEN}✓ Принято${NC}"
+echo ""
+
 echo -e "${YELLOW}[1/5] Проверяю Python...${NC}"
 if command -v python3 &>/dev/null; then
     PY=$(python3 --version)
