@@ -1062,8 +1062,35 @@ def cmd(text, hist):
             "/план — план из последнего лога\n"
             "/id — thread_id текущего топика\n"
             "/топики — список настроенных топиков\n"
+            "/upgrade — научить бота новой функции\n"
             "/помощь — эта справка"
         )
+
+    elif c == "/upgrade":
+        task = text[len("/upgrade"):].strip()
+        if not task:
+            send("Напиши что добавить:\n/upgrade хочу чтобы бот умел делать X")
+            return hist
+        _bot_path = os.path.abspath(__file__)
+        _bot_dir  = os.path.dirname(_bot_path)
+        _restart_cmd = (
+            f"pkill -f claude_bot.py; sleep 2; "
+            f"cd {_bot_dir} && nohup python3 {_bot_path} >> {_bot_dir}/claude_bot.log 2>&1 &"
+        )
+        _upgrade_prompt = (
+            f"Ты — разработчик бота Jarvis.\n"
+            f"Прочитай файл '{_bot_path}' целиком.\n"
+            f"Добавь в него следующую функциональность: {task}\n"
+            f"Правила:\n"
+            f"- Не ломай существующий код\n"
+            f"- Добавляй в нужное место по смыслу\n"
+            f"- Запиши изменённый файл обратно: '{_bot_path}'\n"
+            f"- Затем выполни bash команду для перезапуска: {_restart_cmd}\n"
+            f"- После перезапуска сообщи что именно добавил (1-3 строки)\n"
+        )
+        send("⚙️ Начинаю апгрейд бота...")
+        hist = ask(_upgrade_prompt, hist, stream=True)
+        return hist
 
     return hist
 
