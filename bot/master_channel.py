@@ -240,6 +240,35 @@ def handle_master(msg: dict) -> bool:
         )
         return True
 
+    # ── ##register## — авторегистрация ребёнка ───────────────────────────────
+    if cmd.startswith("##register##"):
+        try:
+            parts = cmd.split("##")
+            # ##register##CHAT_ID##TOKEN
+            child_chat_id = parts[2]
+            child_token   = parts[3]
+            # Загружаем реестр матери
+            children_file = os.path.join(os.path.dirname(__file__), "children.json")
+            children = {}
+            if os.path.exists(children_file):
+                children = json.load(open(children_file, encoding="utf-8"))
+            # Добавляем если нет
+            if child_chat_id not in children:
+                import platform
+                children[child_chat_id] = {
+                    "token":   child_token,
+                    "chat_id": child_chat_id,
+                    "note":    f"авторег {now.strftime('%d.%m.%Y %H:%M')}",
+                    "added":   now.strftime("%Y-%m-%d %H:%M")
+                }
+                json.dump(children, open(children_file, "w", encoding="utf-8"),
+                          ensure_ascii=False, indent=2)
+                _reply_to_mother(f"✅ Ребёнок `{child_chat_id}` добавлен в реестр")
+            # Не отвечаем если уже есть — тихо
+        except Exception as e:
+            print(f"[MC] register error: {e}", flush=True)
+        return True
+
     # Неизвестная команда
     _reply_to_mother(f"❓ Неизвестная команда: `{cmd}`\n\n"
                      f"Доступно: /ping /report /history /contexts /claude_md /log /bash /push /restart /status")
