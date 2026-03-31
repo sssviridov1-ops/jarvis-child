@@ -1,0 +1,19 @@
+name: Notify on push
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram notification
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          VERSION=$(git rev-parse --short HEAD)
+          MESSAGE="✅ JARVIS обновлён%0Aверсия: \`${VERSION}\`%0Aветка: \`main\`%0Aдети обновятся в течение 24ч"
+          curl -s "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${CHAT_ID}&text=${MESSAGE}&parse_mode=Markdown"
